@@ -9,7 +9,11 @@ import json
 def encrypt(dado):
   return bcrypt_sha256.encrypt(dado)
 
-@loja_bp("/api/criar-loja", methods=["POST"])
+@loja_bp.route("/")
+def homepage():
+  return render_template("index.html")
+
+@loja_bp.route("/api/criar-loja", methods=["POST"])
 def criarLoja():
   nome = request.form['name']
   email = request.form['email']
@@ -65,13 +69,9 @@ def getLoja(loja):
     "owner": loja.owner,
     "email": loja.email,
     "senha": loja.senha,
-    "produtos": [for produto in produtos: {
-      "name": produto.nome,
-      "tags": produto.tags,
-      "price": produto.price,
-      "loja": produto.loja,
-      "vendas": produto.vendas,
-      "estoque": produto.estoque
-    }]
+    "produtos": [{"name": produto.nome, "tags": produto.tags, "price": produto.price, "loja": produto.loja, "vendas": produto.vendas, "estoque": produto.estoque} for produto in produtos]
   })
 
+@loja_bp.route('/produtos')
+def listProducts():
+  return render_template('produtos.html')

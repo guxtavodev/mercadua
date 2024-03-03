@@ -1,6 +1,6 @@
 from app import app, db
 
-class Loja(db.Model()):
+class Loja(db.Model):
   id = db.Column(db.String(), primary_key=True)
   name = db.Column(db.String())
   owner = db.Column(db.String())
@@ -14,7 +14,7 @@ class Loja(db.Model()):
     self.email = email
     self.senha = senha
 
-class Produto(db.Model()):
+class Produto(db.Model):
   id = db.Column(db.String(), primary_key=True)
   nome = db.Column(db.String())
   tags = db.Column(db.String())

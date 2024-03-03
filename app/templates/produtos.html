@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block styled %}
+<link rel='stylesheet' href='../static/css/produtos.css'>
+{% endblock %}
+
+{% block content %}
+<div class='container'>
+  <h3>Adicionar Produto</h3>
+  <div>
+    <form id="formAdicionarProduto">
+      <input type='text' placeholder='Digite o nome do produto' name='nome' id='inputNome' required>
+      <input type='text' placeholder='Digite as tags do produto' name='tags' id='inputTags' required>
+      <input type='number' step="0.01" placeholder='Digite o preço do produto' name='price' id='inputPreco' required>
+      <input type='number' placeholder='Digite a quantidade do produto' name='estoque' id='inputEstoque' required>
+      <button type='submit'>Adicionar</button>
+    </form>
+  </div>
+</div>
+
+<div class='container'>
+  <h3>Lista de Produtos</h3>
+  <div class='list-products' id='listaProdutos'>
+    <!-- Aqui serão adicionados os produtos -->
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+  document.getElementById('formAdicionarProduto').addEventListener('submit', function(event) {
+    event.preventDefault(); // Evitar o envio do formulário
+
+    var nomeProduto = document.getElementById('inputNome').value;
+    var tagsProduto = document.getElementById('inputTags').value;
+    var precoProduto = parseFloat(document.getElementById('inputPreco').value);
+    var estoqueProduto = parseInt(document.getElementById('inputEstoque').value);
+
+    if (nomeProduto.trim() !== '' && tagsProduto.trim() !== '' && !isNaN(precoProduto) && precoProduto > 0 && !isNaN(estoqueProduto) && estoqueProduto > 0) {
+      criarProduto(nomeProduto, tagsProduto, precoProduto, estoqueProduto);
+      limparCampos();
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Por favor, preencha todos os campos corretamente.'
+      });
+    }
+  });
+
+  function criarProduto(nome, tags, preco, estoque) {
+    fetch('/api/criar-produto', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nome: nome,
+        tags: tags,
+        price: preco,
+        estoque: estoque
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.message === "Produto criado com sucesso!") {
+        Swal.fire({
+          icon: 'success',
+          title: 'Sucesso!',
+          text: 'Produto criado com sucesso.'
+        });
+        // Atualizar a lista de produtos após adicionar um novo
+        atualizarListaProdutos();
+      } else {
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Algo deu errado ao criar o produto.'
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Erro ao criar o produto:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Algo deu errado ao criar o produto.'
+      });
+    });
+  }
+
+  function limparCampos() {
+    document.getElementById('inputNome').value = '';
+    document.getElementById('inputTags').value = '';
+    document.getElementById('inputPreco').value = '';
+    document.getElementById('inputEstoque').value = '';
+  }
+
+  function atualizarListaProdutos() {
+    fetch('/api/produtos')
+    .then(response => response.json())
+    .then(data => {
+      const listaProdutos = document.getElementById('listaProdutos');
+      listaProdutos.innerHTML = ''; // Limpar a lista antes de adicionar os produtos atualizados
+      data.produtos.forEach(produto => {
+        const divProduto = document.createElement('div');
+        divProduto.className = 'product';
+        divProduto.innerHTML = `<p class="editable" onclick="editarProduto('${produto.id}', '${produto.nome}', '${produto.tags}', '${produto.price}', '${produto.estoque}')"><strong>${produto.nome}</strong> - R$${produto.price.toFixed(2)} - ${produto.estoque} vendas</p><button onclick="deletarProduto('${produto.id}')">Deletar</button>`;
+        listaProdutos.appendChild(divProduto);
+      });
+    })
+    .catch(error => {
+      console.error('Erro ao obter a lista de produtos:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Algo deu errado ao obter a lista de produtos.'
+      });
+    });
+  }
+
+  function editarProduto(id, nome, tags, preco, estoque) {
+    Swal.fire({
+      title: 'Editar Produto',
+      html:
+        `<input id="swal-input1" class="swal2-input" value="${nome}" placeholder="Nome do produto">` +
+        `<input id="swal-input2" class="swal2-input" value="${preco}" placeholder="Preço do produto">` +
+        `<input id="swal-input3" class="swal2-input" value="${estoque}" placeholder="Estoque do produto">`,
+      focusConfirm: false,
+      preConfirm: () => {
+        const novoNome = Swal.getPopup().querySelector('#swal-input1').value;
+        const novoPreco = parseFloat(Swal.getPopup().querySelector('#swal-input2').value);
+        const novoEstoque = parseInt(Swal.getPopup().querySelector('#swal-input3').value);
+        if (novoNome.trim() !== '' && !isNaN(novoPreco) && novoPreco > 0 && !isNaN(novoEstoque) && novoEstoque > 0) {
+          fetch('/api/editar-produto', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              id: id,
+              nome: novoNome,
+              tags: tags,
+              price: novoPreco,
+              estoque: novoEstoque
+            })
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.message === "Produto editado com sucesso!") {
+              Swal.fire({
+                icon: 'success',
+                title: 'Sucesso!',
+                text: 'Produto editado com sucesso.'
+              });
+              // Atualizar a lista de produtos após editar
+              atualizarListaProdutos();
+            } else {
+              Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: 'Algo deu errado ao editar o produto.'
+              });
+            }
+          })
+          .catch(error => {
+            console.error('Erro ao editar o produto:', error);
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'Algo deu errado ao editar o produto.'
+            });
+          });
+        } else {
+          Swal.showValidationMessage('Preencha todos os campos corretamente');
+        }
+      }
+    });
+  }
+
+  function deletarProduto(id) {
+    Swal.fire({
+      title: 'Tem certeza?',
+      text: "Esta ação não poderá ser revertida!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Sim, deletar!',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch('/api/deletar-produto', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            id: id
+          })
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.message === "Produto deletado com sucesso!") {
+            Swal.fire(
+              'Deletado!',
+              'O produto foi deletado com sucesso.',
+              'success'
+            );
+            // Atualizar a lista de produtos após deletar
+            atualizarListaProdutos();
+          } else {
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'Algo deu errado ao deletar o produto.'
+            });
+          }
+        })
+        .catch(error => {
+          console.error('Erro ao deletar o produto:', error);
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Algo deu errado ao deletar o produto.'
+          });
+        });
+      }
+    });
+  }
+
+  // Carregar a lista de produtos ao carregar a página
+  window.onload = function() {
+    atualizarListaProdutos();
+  };
+</script>
+{% endblock %}

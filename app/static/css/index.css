@@ -1,0 +1,19 @@
+.list-products{
+  margin-top: 2em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.7em;
+}
+
+.product{
+  background: #f1f1f1;
+  color: #212121;
+  padding: 6px;
+  border-radius: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.product span {
+  cursor: pointer;
+}

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block styled %}
+<link rel='stylesheet' href='../static/css/index.css'>
+{% endblock %}
+
+{% block content %}
+  <div class='container'>
+    <h3>Registrar Venda</h3>
+    <div class="add-form">
+      <input placeholder="Escolha o produto" list="produtos" name="produtos" id="produto">
+
+      <datalist id="produtos">
+        <option value="Edge">
+        <option value="Firefox">
+        <option value="Chrome">
+        <option value="Opera">
+        <option value="Safari">
+      </datalist>
+      <input placeholder="Quantidade" type="number" name="quantidade" id="quantidade">
+    </div>
+    <button id="adicionar">Adicionar</button>
+
+    <div class="list-products" id="listaProdutos">
+      <!-- Aqui serão adicionados os produtos -->
+    </div>
+  </div>
+
+  <div class='container' id="resumoVenda">
+    <h3>Resumo da Venda</h3>
+    <p><strong>Preço Final: </strong>R$<span id="precoFinal">0.00</span></p>
+    <p><strong>Troco: </strong>R$<span id="troco">0.00</span></p>
+    <input type='number' placeholder='Valor Fornecido' id="valorFornecido">
+    <button onclick="finalizarVenda()">Finalizar Venda</button>
+  </div>
+
+  <script>
+    var produtos = [];
+    var precoTotal = 0;
+
+    document.getElementById('adicionar').addEventListener('click', function() {
+      var produto = document.getElementById('produto').value;
+      var quantidade = parseInt(document.getElementById('quantidade').value);
+
+      if (produto.trim() !== '' && !isNaN(quantidade) && quantidade > 0) {
+        adicionarProduto(produto, quantidade);
+        produtos.push({ nome: produto, quantidade: quantidade });
+        calcularPrecoTotal();
+        limparCampos();
+        focarCampoProduto();
+      } else {
+        adicionarProduto(produto, 1); // Definindo a quantidade como 1 se estiver vazia ou inválida
+        produtos.push({ nome: produto, quantidade: 1 });
+        calcularPrecoTotal();
+        limparCampos();
+        focarCampoProduto();
+      }
+    });
+
+    function adicionarProduto(produto, quantidade) {
+      var listaProdutos = document.getElementById('listaProdutos');
+      var divProduto = document.createElement('div');
+      divProduto.className = 'product';
+      divProduto.innerHTML = '<p><strong>' + produto + '</strong> - ' + quantidade + '</p><span class="material-symbols-outlined delete" onclick="excluirProduto(this)">delete</span>';
+      listaProdutos.appendChild(divProduto);
+    }
+
+    function excluirProduto(element) {
+      var divProduto = element.parentNode;
+      divProduto.parentNode.removeChild(divProduto);
+      var produtoNome = divProduto.querySelector('strong').textContent;
+      produtos = produtos.filter(function(p) {
+        return p.nome !== produtoNome;
+      });
+      calcularPrecoTotal();
+    }
+
+    function calcularPrecoTotal() {
+      precoTotal = 0;
+      produtos.forEach(function(produto) {
+        // Aqui você deve adicionar a lógica para buscar o preço do produto no seu sistema
+        // Por enquanto, vamos apenas adicionar um valor fixo de R$ 5.00 por unidade
+        precoTotal += 5.00 * produto.quantidade;
+      });
+      document.getElementById('precoFinal').textContent = precoTotal.toFixed(2);
+      atualizarTroco();
+    }
+
+    function atualizarTroco() {
+      var valorFornecido = parseFloat(document.getElementById('valorFornecido').value);
+      var troco = valorFornecido - precoTotal;
+      document.getElementById('troco').textContent = troco.toFixed(2);
+    }
+
+    function finalizarVenda() {
+      // Aqui você pode adicionar a lógica para finalizar a venda
+      // Por enquanto, apenas mostraremos uma mensagem
+      alert('Venda finalizada com sucesso!');
+    }
+
+    function limparCampos() {
+      document.getElementById('produto').value = '';
+      document.getElementById('quantidade').value = '';
+    }
+
+    function focarCampoProduto() {
+      document.getElementById('produto').focus();
+    }
+  </script>
+{% endblock %}

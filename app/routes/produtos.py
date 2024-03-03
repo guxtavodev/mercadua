@@ -6,7 +6,7 @@ from passlib.hash import bcrypt_sha256
 import uuid
 import json
 
-@produtos_bp("/api/criar-produto", methods=["POST"])
+@produtos_bp.route("/api/criar-produto", methods=["POST"])
 def criarProduto():
   data = request.get_json()
   nome = data["nome"]
@@ -22,7 +22,7 @@ def criarProduto():
 
   return jsonify({"message": "Produto criado com sucesso!"})
 
-@produtos_bp("/api/editar-produto", methods=["POST"])
+@produtos_bp.route("/api/editar-produto", methods=["POST"])
 def editarProduto():
   data = request.get_json()
   id = data["id"]
@@ -41,7 +41,7 @@ def editarProduto():
 
   return jsonify({"message": "Produto editado com sucesso!"})
 
-@produtos_bp("/api/deletar-produto", methods=["POST"])
+@produtos_bp.route("/api/deletar-produto", methods=["POST"])
 def deletarProduto():
   data = request.get_json()
   id = data["id"]
@@ -52,7 +52,7 @@ def deletarProduto():
 
   return jsonify({"message": "Produto deletado com sucesso!"})
 
-@produtos_bp("/api/produtos", methods=["GET"])
+@produtos_bp.route("/api/produtos", methods=["GET"])
 def getProdutos():
   produtos = Produto.query.all()
   produtos_json = []
@@ -67,9 +67,9 @@ def getProdutos():
       "estoque": produto.estoque
     })
 
-  return jsonify("produtos": produtos_json)
+  return jsonify({"produtos": produtos_json})
 
-@produtos_bp("/api/get-produto", methods=["GET"])
+@produtos_bp.route("/api/get-produto", methods=["GET"])
 def getProduto():
   data = request.get_json()
   id = data["id"]
