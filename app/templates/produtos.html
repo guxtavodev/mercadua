@@ -25,6 +25,24 @@
   </div>
 </div>
 
+<div class='container'>
+  <h3>Contas de Cliente</h3>
+
+  <div class='list-products' id='listaClientes'>
+    <div class='client'>
+      <p><strong>Daniel</strong> - R$567,00</p>
+      <button class='excluir-conta'>Excluir</button>
+    </div>
+
+    {% for cliente in contas %}
+    <div class='client'>
+      <p><strong>{{cliente.nome}}</strong> - R${{cliente.valor}}</p>
+      <button onclick='deletarConta()' class='excluir-conta'>Excluir</button>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
   document.getElementById('formAdicionarProduto').addEventListener('submit', function(event) {
@@ -104,7 +122,7 @@
       data.produtos.forEach(produto => {
         const divProduto = document.createElement('div');
         divProduto.className = 'product';
-        divProduto.innerHTML = `<p class="editable" onclick="editarProduto('${produto.id}', '${produto.nome}', '${produto.tags}', '${produto.price}', '${produto.estoque}')"><strong>${produto.nome}</strong> - R$${produto.price.toFixed(2)} - ${produto.estoque} vendas</p><button onclick="deletarProduto('${produto.id}')">Deletar</button>`;
+        divProduto.innerHTML = `<p class="editable" onclick="editarProduto('${produto.id}', '${produto.nome}', '${produto.tags}', '${produto.price}', '${produto.estoque}')"><strong>${produto.nome}</strong> - R$${produto.price.toFixed(2)} - ${produto.vendas} vendas / ${produto.estoque} em estoque</p><button onclick="deletarProduto('${produto.id}')">Deletar</button>`;
         listaProdutos.appendChild(divProduto);
       });
     })

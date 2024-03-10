@@ -11,11 +11,9 @@
       <input placeholder="Escolha o produto" list="produtos" name="produtos" id="produto">
 
       <datalist id="produtos">
-        <option value="Edge">
-        <option value="Firefox">
-        <option value="Chrome">
-        <option value="Opera">
-        <option value="Safari">
+          {% for produto in produtos %}
+            <option value="{{ produto.nome }}">
+          {% endfor %}
       </datalist>
       <input placeholder="Quantidade" type="number" name="quantidade" id="quantidade">
     </div>
@@ -32,79 +30,173 @@
     <p><strong>Troco: </strong>R$<span id="troco">0.00</span></p>
     <input type='number' placeholder='Valor Fornecido' id="valorFornecido">
     <button onclick="finalizarVenda()">Finalizar Venda</button>
+    <button onclick="adicionarValorConta()">Adicionar à Conta</button> <!-- Botão para adicionar à conta do cliente -->
   </div>
 
-  <script>
-    var produtos = [];
-    var precoTotal = 0;
 
-    document.getElementById('adicionar').addEventListener('click', function() {
-      var produto = document.getElementById('produto').value;
-      var quantidade = parseInt(document.getElementById('quantidade').value);
+<script>
+  var produtos = [];
+  var precoTotal = 0;
 
-      if (produto.trim() !== '' && !isNaN(quantidade) && quantidade > 0) {
-        adicionarProduto(produto, quantidade);
-        produtos.push({ nome: produto, quantidade: quantidade });
-        calcularPrecoTotal();
-        limparCampos();
-        focarCampoProduto();
-      } else {
-        adicionarProduto(produto, 1); // Definindo a quantidade como 1 se estiver vazia ou inválida
-        produtos.push({ nome: produto, quantidade: 1 });
-        calcularPrecoTotal();
-        limparCampos();
-        focarCampoProduto();
+  document.getElementById('adicionar').addEventListener('click', function() {
+    var produto = document.getElementById('produto').value;
+    var quantidade = parseInt(document.getElementById('quantidade').value);
+
+    if (produto.trim() !== '' && !isNaN(quantidade) && quantidade > 0) {
+      adicionarProduto(produto, quantidade);
+      produtos.push({ nome: produto, quantidade: quantidade });
+      buscarPrecoProduto(produto, quantidade); // Buscar o preço do produto
+      limparCampos();
+      focarCampoProduto();
+    } else {
+      alert('Por favor, escolha um produto válido e insira uma quantidade maior que zero.');
+    }
+  });
+
+  function adicionarProduto(produto, quantidade) {
+    var listaProdutos = document.getElementById('listaProdutos');
+    var divProduto = document.createElement('div');
+    divProduto.className = 'product';
+    divProduto.innerHTML = '<p><strong>' + produto + '</strong> - ' + quantidade + '</p><span class="material-symbols-outlined delete" onclick="excluirProduto(this)">delete</span>';
+    listaProdutos.appendChild(divProduto);
+  }
+
+  function excluirProduto(element) {
+    var divProduto = element.parentNode;
+    divProduto.parentNode.removeChild(divProduto);
+    var produtoNome = divProduto.querySelector('strong').textContent;
+  }
+
+  function buscarPrecoProduto(produto, quantidade) {
+    fetch('/api/get-produto', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        produto: produto
+      })
+    }).then(response => response.json())
+      .then(data => {
+        if (data) {
+          precoTotal += data.price * quantidade;
+          document.getElementById('precoFinal').textContent = precoTotal.toFixed(2);
+          atualizarTroco();
+        } else {
+          alert('Erro ao obter o preço do produto.');
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao buscar o preço do produto:', error);
+      });
+  }
+
+  function atualizarTroco() {
+    var valorFornecido = parseFloat(document.getElementById('valorFornecido').value);
+    var troco = valorFornecido - precoTotal;
+    document.getElementById('troco').textContent = troco.toFixed(2);
+  }
+
+  // Adicionando evento de input para atualizar o troco conforme o usuário edita o valor fornecido
+  document.getElementById('valorFornecido').addEventListener('input', function() {
+    atualizarTroco();
+  });
+
+  function finalizarVenda() {
+    // Chamada para finalizar a venda no backend Flask
+    fetch('/api/finalizar-venda', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        produtos: produtos,
+        precoTotal: precoTotal
+      })
+    }).then(response => {
+      if (response.ok) {
+        // Venda finalizada com sucesso, você pode redirecionar ou mostrar uma mensagem
+        alert('Venda finalizada com sucesso!');
       }
+    }).catch(error => {
+      console.error('Erro ao finalizar venda:', error);
     });
+  }
 
-    function adicionarProduto(produto, quantidade) {
-      var listaProdutos = document.getElementById('listaProdutos');
-      var divProduto = document.createElement('div');
-      divProduto.className = 'product';
-      divProduto.innerHTML = '<p><strong>' + produto + '</strong> - ' + quantidade + '</p><span class="material-symbols-outlined delete" onclick="excluirProduto(this)">delete</span>';
-      listaProdutos.appendChild(divProduto);
-    }
+  function limparCampos() {
+    document.getElementById('produto').value = '';
+    document.getElementById('quantidade').value = '';
+  }
 
-    function excluirProduto(element) {
-      var divProduto = element.parentNode;
-      divProduto.parentNode.removeChild(divProduto);
-      var produtoNome = divProduto.querySelector('strong').textContent;
-      produtos = produtos.filter(function(p) {
-        return p.nome !== produtoNome;
-      });
-      calcularPrecoTotal();
-    }
+  function focarCampoProduto() {
+    document.getElementById('produto').focus();
+  }
 
-    function calcularPrecoTotal() {
-      precoTotal = 0;
-      produtos.forEach(function(produto) {
-        // Aqui você deve adicionar a lógica para buscar o preço do produto no seu sistema
-        // Por enquanto, vamos apenas adicionar um valor fixo de R$ 5.00 por unidade
-        precoTotal += 5.00 * produto.quantidade;
-      });
-      document.getElementById('precoFinal').textContent = precoTotal.toFixed(2);
-      atualizarTroco();
-    }
+  function adicionarValorConta() {
+    var valorTotal = parseFloat(document.getElementById('precoFinal').textContent); // Corrigido para usar o preço total
+    var opcao = prompt("Deseja adicionar à conta existente (E) ou criar uma nova conta (N)?");
+    
+    if (opcao && (opcao.toUpperCase() === 'E' || opcao.toUpperCase() === 'N')) {
+      if (opcao.toUpperCase() === 'E') {
+        var idConta = prompt("Por favor, insira o nome da conta existente:");
+        if (idConta) {
+          adicionarValorContaExistente(idConta, valorTotal);
+        } else {
+          alert('ID da conta não inserido.');
+        }
+      } else if (opcao.toUpperCase() === 'N') {
+        var nome = prompt("Por favor, insira o nome do cliente:");
+        var telefone = prompt("Por favor, insira o telefone do cliente:");
 
-    function atualizarTroco() {
-      var valorFornecido = parseFloat(document.getElementById('valorFornecido').value);
-      var troco = valorFornecido - precoTotal;
-      document.getElementById('troco').textContent = troco.toFixed(2);
+        if (nome && telefone) {
+          criarNovaConta(nome, telefone, valorTotal);
+        } else {
+          alert('Por favor, insira um nome e telefone válidos.');
+        }
+      }
+    } else {
+      alert('Opção inválida. Insira "E" para conta existente ou "N" para nova conta.');
     }
+  }
 
-    function finalizarVenda() {
-      // Aqui você pode adicionar a lógica para finalizar a venda
-      // Por enquanto, apenas mostraremos uma mensagem
-      alert('Venda finalizada com sucesso!');
-    }
+  function adicionarValorContaExistente(idConta, valorTotal) {
+    fetch('/api/add-valor', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nome: idConta,
+        valor: valorTotal
+      })
+    }).then(response => {
+      if (response.ok) {
+        alert('Valor adicionado à conta existente com sucesso!');
+      }
+    }).catch(error => {
+      console.error('Erro ao adicionar valor à conta existente:', error);
+    });
+  }
 
-    function limparCampos() {
-      document.getElementById('produto').value = '';
-      document.getElementById('quantidade').value = '';
-    }
+  function criarNovaConta(nome, telefone, valorTotal) {
+    fetch('/api/criar-conta', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        nome: nome,
+        telefone: telefone,
+        valor: valorTotal
+      })
+    }).then(response => {
+      if (response.ok) {
+        alert('Nova conta criada com sucesso!');
+      }
+    }).catch(error => {
+      console.error('Erro ao criar nova conta:', error);
+    });
+  }
+</script>
 
-    function focarCampoProduto() {
-      document.getElementById('produto').focus();
-    }
-  </script>
 {% endblock %}

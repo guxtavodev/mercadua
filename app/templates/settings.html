@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block styled %}
+<link rel='stylesheet' href='../static/css/settings.css'>
+{% endblock %}
+
+{% block content %}
+<div class='container'>
+  <h3>Editar Conta</h3>
+  <form>
+    <input type='text' placeholder='Digite o nome da loja' value='{{loja.name}}' name='nome' required>
+    <input type='email' placeholder='Digite o e-mail de contato da loja' value='{{loja.email}}' name='email' required>
+    <input type='password' placeholder='Digite a senha da conta' value='{{loja.senha}}' name='password' required>
+    <button type='submit'>Enviar Alteraçôes</button>
+  </form>
+</div>
+{% endblock %}

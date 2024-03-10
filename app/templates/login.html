@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+  <h3>Conectar-se</h3>
+  <form action='/api/login' method='POST'>
+    <input type='email' placeholder='Digite o e-mail cadastrado em sua conta' name='email' required>
+    <input type='password' placeholder='Digite a sua senha' name='password' required>
+    <button type='submit'>Conectar a Conta</button>
+  </form>
+</div>
+{% endblock %}
