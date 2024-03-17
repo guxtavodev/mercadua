@@ -11,8 +11,11 @@ def encrypt(dado):
 
 @loja_bp.route("/")
 def homepage():
-  produtos = Produto.query.filter_by(loja=session['loja']).all()
-  return render_template("index.html", produtos=produtos)
+  try:
+    produtos = Produto.query.filter_by(loja=session['loja']).all()
+    return render_template("index.html", produtos=produtos)
+  except:
+    return redirect('/login')
 
 @loja_bp.route("/api/criar-loja", methods=["POST"])
 def criarLoja():

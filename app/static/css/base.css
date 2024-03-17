@@ -78,3 +78,20 @@ form{
   flex-direction: column;
   gap: 0.7em;
 }
+
+@media screen and (max-width: 1000px) {
+  .container{
+    width: 100%;
+  }
+
+  header{
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+  }
+
+  input{
+    width: 100%;
+  }
+
+}
