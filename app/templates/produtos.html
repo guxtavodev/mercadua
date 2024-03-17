@@ -29,15 +29,14 @@
   <h3>Contas de Cliente</h3>
 
   <div class='list-products' id='listaClientes'>
-    <div class='client'>
-      <p><strong>Daniel</strong> - R$567,00</p>
-      <button class='excluir-conta'>Excluir</button>
-    </div>
+
 
     {% for cliente in contas %}
     <div class='client'>
       <p><strong>{{cliente.nome}}</strong> - R${{cliente.valor}}</p>
-      <button onclick='deletarConta()' class='excluir-conta'>Excluir</button>
+      <input type='number' placeholder='Digite o valor a ser removido' id='inputValor{{cliente.nome}}'>
+      <button onclick='removerValorCliente("{{cliente.nome}}")'>Remover Valor</button>
+      <button onclick='window.location.href="/api/excluir-conta/{{cliente.nome}}"' class='excluir-conta'>Excluir</button>
     </div>
     {% endfor %}
   </div>
@@ -45,6 +44,56 @@
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
+  function removerValorCliente(nomeCliente) {
+    const valorRemover = parseFloat(document.getElementById('inputValor' + nomeCliente).value);
+
+    if (!isNaN(valorRemover) && valorRemover > 0) {
+      fetch('/api/remove-valor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          nome: nomeCliente,
+          valor: valorRemover
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.message === "Valor removido com sucesso para o cliente " + nomeCliente) {
+          Swal.fire({
+            icon: 'success',
+            title: 'Sucesso!',
+            text: 'Valor removido com sucesso para o cliente ' + nomeCliente
+          });
+          // Atualizar a lista de clientes após remover o valor
+          atualizarListaClientes();
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: data.message
+          });
+        }
+      })
+      .catch(error => {
+        console.error('Erro ao remover valor:', error);
+        Swal.fire({
+          icon: 'error',
+          title: 'Oops...',
+          text: 'Algo deu errado ao remover o valor.'
+        });
+      });
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Oops...',
+        text: 'Por favor, insira um valor válido.'
+      });
+    }
+  }
+
+  
   document.getElementById('formAdicionarProduto').addEventListener('submit', function(event) {
     event.preventDefault(); // Evitar o envio do formulário
 

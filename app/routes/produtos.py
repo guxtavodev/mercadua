@@ -29,7 +29,7 @@ def editarProduto():
   nome = data["nome"]
   tags = data["tags"]
   price = float(data["price"])
-  estoque = data["estoque"]
+  estoque = int(data["estoque"])
 
   produto = Produto.query.filter_by(id=id).first()
   produto.nome = nome
@@ -54,7 +54,7 @@ def deletarProduto():
 
 @produtos_bp.route("/api/produtos", methods=["GET"])
 def getProdutos():
-  produtos = Produto.query.all()
+  produtos = Produto.query.filter_by(loja=session['loja']).all()
   produtos_json = []
   for produto in produtos:
     produtos_json.append({
@@ -75,7 +75,7 @@ def getProduto():
         data = request.get_json()
         id = data["produto"]
 
-        produto = Produto.query.filter_by(nome=id).first()
+        produto = Produto.query.filter_by(nome=id, loja=session['loja']).first()
 
         if produto is None:
             raise Exception("Produto não encontrado")

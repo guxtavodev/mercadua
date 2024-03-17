@@ -106,7 +106,7 @@ def finalizarVenda():
     # Lógica para finalizar a venda aqui
     print(produtos)
     for produto in produtos:
-      produto_db = Produto.query.filter_by(nome=produto["nome"]).first()
+      produto_db = Produto.query.filter_by(nome=produto["nome"], loja=session['loja']).first()
       produto_db.vendas = produto_db.vendas + int(produto['quantidade'])
       produto_db.estoque = produto_db.estoque - int(produto['quantidade'])
       db.session.commit()
