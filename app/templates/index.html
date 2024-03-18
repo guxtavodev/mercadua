@@ -117,6 +117,12 @@
       if (response.ok) {
         // Venda finalizada com sucesso, você pode redirecionar ou mostrar uma mensagem
         alert('Venda finalizada com sucesso!');
+        // Limpar a lista de produtos e a array de produtos
+        document.getElementById('listaProdutos').innerHTML = '';
+        produtos = [];
+        precoTotal = 0;
+        document.getElementById('precoFinal').textContent = precoTotal.toFixed(2);
+        document.getElementById('troco').textContent = precoTotal.toFixed(2);
       }
     }).catch(error => {
       console.error('Erro ao finalizar venda:', error);
